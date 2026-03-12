@@ -1,33 +1,29 @@
-export default async function handler(req,res){
-
-const {text,password} = JSON.parse(req.body)
-
-const zw = {
-"\u200B":"0",
-"\u200C":"1"
+export const config = {
+api:{ bodyParser:{ sizeLimit:"50mb"} }
 }
+
+export default function handler(req,res){
+
+const {cover,password,data,name} = req.body
+
+const payload = JSON.stringify({
+name,
+data,
+password
+})
 
 let bits=""
 
-for(const c of text){
-if(zw[c]) bits += zw[c]
+for(const c of payload){
+bits += c.charCodeAt(0).toString(2).padStart(8,"0")
 }
 
-let chars=[]
+let hidden=""
 
-for(let i=0;i<bits.length;i+=8){
-chars.push(
-String.fromCharCode(
-parseInt(bits.slice(i,i+8),2)
-)
-)
+for(const b of bits){
+hidden += b==="0" ? "\u200B" : "\u200C"
 }
 
-const payload = JSON.parse(chars.join(""))
-
-if(payload.password !== password)
-return res.status(403).send("Wrong password")
-
-res.status(200).json(payload)
+res.status(200).send(cover + hidden)
 
 }
