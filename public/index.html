@@ -10,18 +10,24 @@
 
 <div class="app">
 
-<h1>XS Steganography</h1>
+<h1>XS Steg</h1>
 
-<textarea id="cover" placeholder="Cover text..."></textarea>
+<textarea id="cover" placeholder="Cover text"></textarea>
 
-<input type="password" id="password" placeholder="Password">
+<textarea id="textInput" placeholder="Optional text input"></textarea>
 
 <input type="file" id="file">
 
+<input type="password" id="password" placeholder="Password">
+
+<div class="buttons">
 <button id="encode">Encode</button>
 <button id="decode">Decode</button>
+</div>
 
-<textarea id="output" placeholder="Output..." readonly></textarea>
+<div id="loading">Processing…</div>
+
+<textarea id="output" placeholder="Result"></textarea>
 
 <a id="download"></a>
 
