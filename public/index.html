@@ -23,9 +23,17 @@
 <div class="buttons">
 <button id="encode">Encode</button>
 <button id="decode">Decode</button>
+<button id="exportOutput">Export Output</button>
+<button id="importOutput">Import Encoded File</button>
 </div>
 
+<input type="file" id="importFile" style="display:none">
+
 <div id="loading">Processing…</div>
+
+<div class="progressContainer">
+<div id="progressBar"></div>
+</div>
 
 <textarea id="output" placeholder="Result"></textarea>
 
@@ -34,5 +42,6 @@
 </div>
 
 <script src="/script.js"></script>
+
 </body>
 </html>
