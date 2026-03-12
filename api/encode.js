@@ -1,6 +1,10 @@
-export default async function handler(req,res){
+export const config = {
+api:{ bodyParser:{ sizeLimit:"50mb"} }
+}
 
-const {cover,password,data,name} = JSON.parse(req.body)
+export default function handler(req,res){
+
+const {cover,password,data,name} = req.body
 
 const payload = JSON.stringify({
 name,
@@ -8,22 +12,18 @@ data,
 password
 })
 
-const binary = [...payload]
-.map(c=>c.charCodeAt(0).toString(2).padStart(8,"0"))
-.join("")
+let bits=""
 
-const zw = {
-0:"\u200B",
-1:"\u200C"
+for(const c of payload){
+bits += c.charCodeAt(0).toString(2).padStart(8,"0")
 }
 
 let hidden=""
 
-for(const b of binary)
-hidden += zw[b]
+for(const b of bits){
+hidden += b==="0" ? "\u200B" : "\u200C"
+}
 
-const result = cover + hidden
-
-res.status(200).send(result)
+res.status(200).send(cover + hidden)
 
 }
