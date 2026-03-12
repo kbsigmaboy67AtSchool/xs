@@ -1,12 +1,20 @@
 const fileInput = document.getElementById("file")
+const importFile = document.getElementById("importFile")
 const textInput = document.getElementById("textInput")
 const cover = document.getElementById("cover")
 const password = document.getElementById("password")
 const output = document.getElementById("output")
 const loading = document.getElementById("loading")
+const progressBar = document.getElementById("progressBar")
+
+let lastEncodedOutput = ""
 
 function showLoading(v){
 loading.style.display = v ? "block" : "none"
+}
+
+function setProgress(v){
+progressBar.style.width = v + "%"
 }
 
 async function readFile(file){
@@ -29,14 +37,26 @@ reader.readAsArrayBuffer(file)
 
 }
 
-function arrayBufferToBase64(buffer){
+async function arrayBufferToBase64(buffer){
 
-let binary=""
 const bytes = new Uint8Array(buffer)
 
-for(let i=0;i<bytes.length;i++){
-binary += String.fromCharCode(bytes[i])
+let binary=""
+const chunkSize = 50000
+
+for(let i=0;i<bytes.length;i+=chunkSize){
+
+const chunk = bytes.slice(i,i+chunkSize)
+
+binary += String.fromCharCode(...chunk)
+
+setProgress(Math.floor((i/bytes.length)*100))
+
+await new Promise(r=>setTimeout(r,0))
+
 }
+
+setProgress(100)
 
 return btoa(binary)
 
@@ -45,6 +65,7 @@ return btoa(binary)
 document.getElementById("encode").onclick = async ()=>{
 
 showLoading(true)
+setProgress(0)
 
 try{
 
@@ -66,7 +87,7 @@ return
 }
 
 const buffer = await readFile(file)
-payload = arrayBufferToBase64(buffer)
+payload = await arrayBufferToBase64(buffer)
 name = file.name
 
 }
@@ -87,9 +108,13 @@ name:name
 
 const result = await res.text()
 
-output.value = result.length < 500000
-? result
-: "[Output too large to display]"
+lastEncodedOutput = result
+
+if(result.length < 500000){
+output.value = result
+}else{
+output.value = "[Output too large to display. Use Export Output.]"
+}
 
 }catch(e){
 
@@ -99,6 +124,7 @@ alert("Encoding failed")
 }
 
 showLoading(false)
+setProgress(0)
 
 }
 
@@ -114,7 +140,7 @@ method:"POST",
 headers:{ "Content-Type":"application/json" },
 
 body:JSON.stringify({
-text:output.value,
+text:lastEncodedOutput || output.value,
 password:password.value
 })
 
@@ -135,5 +161,60 @@ alert("Decode failed")
 }
 
 showLoading(false)
+
+}
+
+document.getElementById("exportOutput").onclick = ()=>{
+
+if(!lastEncodedOutput){
+alert("No output to export")
+return
+}
+
+const blob = new Blob([lastEncodedOutput],{
+type:"text/plain"
+})
+
+const url = URL.createObjectURL(blob)
+
+const a = document.createElement("a")
+
+a.href = url
+a.download = "encoded_output.txt"
+
+document.body.appendChild(a)
+a.click()
+a.remove()
+
+URL.revokeObjectURL(url)
+
+}
+
+document.getElementById("importOutput").onclick = ()=>{
+
+importFile.click()
+
+}
+
+importFile.onchange = ()=>{
+
+const file = importFile.files[0]
+
+if(!file) return
+
+const reader = new FileReader()
+
+reader.onload = ()=>{
+
+lastEncodedOutput = reader.result
+
+if(reader.result.length < 500000)
+output.value = reader.result
+else
+output.value = "[Large encoded file loaded. Ready to decode.]"
+
+}
+
+reader.readAsText(file)
 
 }
