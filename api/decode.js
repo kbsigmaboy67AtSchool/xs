@@ -4,26 +4,34 @@ api:{ bodyParser:{ sizeLimit:"50mb"} }
 
 export default function handler(req,res){
 
-const {cover,password,data,name} = req.body
-
-const payload = JSON.stringify({
-name,
-data,
-password
-})
+const {text,password} = req.body
 
 let bits=""
 
-for(const c of payload){
-bits += c.charCodeAt(0).toString(2).padStart(8,"0")
+for(const c of text){
+
+if(c === "\u200B") bits+="0"
+if(c === "\u200C") bits+="1"
+
 }
 
-let hidden=""
+let chars=""
 
-for(const b of bits){
-hidden += b==="0" ? "\u200B" : "\u200C"
+for(let i=0;i<bits.length;i+=8){
+
+chars += String.fromCharCode(
+parseInt(bits.slice(i,i+8),2)
+)
+
 }
 
-res.status(200).send(cover + hidden)
+const payload = JSON.parse(chars)
+
+if(payload.password !== password){
+res.status(403).send("Wrong password")
+return
+}
+
+res.json(payload)
 
 }
